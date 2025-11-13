@@ -7,6 +7,7 @@ export class User extends Model {
     declare password: string;
     declare created_at: Date;
     declare updated_at: Date;
+    declare tokens: Array<string>;
 
     static associate(models: any) {
         User.hasMany(models.Transaction, {foreignKey: 'user_id'});
@@ -25,6 +26,7 @@ export const initModel = (sequelize: Sequelize) => {
             unique: true
         },
         password: DataTypes.STRING,
+        tokens: DataTypes.ARRAY,
     }, {
         sequelize,
         tableName: 'users',

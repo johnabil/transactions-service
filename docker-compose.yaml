@@ -1,7 +1,7 @@
 services:
   fastify:
     build: .
-    container_name: auditlog
+    container_name: transactions
     restart: always
     depends_on:
       redis:
@@ -24,7 +24,7 @@ services:
 
   db:
     image: postgres:17-alpine3.22
-    container_name: auditlog_db
+    container_name: transactions_db
     restart: always
     environment:
       - POSTGRES_USER=${DB_USER}
@@ -42,7 +42,7 @@ services:
 
   redis:
     image: redis:7.0.0-alpine
-    container_name: auditlog_redis
+    container_name: transactions_redis
     environment:
       - REDIS_URL=redis://localhost:6379
     ports:

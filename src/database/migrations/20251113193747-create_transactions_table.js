@@ -3,24 +3,32 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('users', {
+    await queryInterface.createTable('transactions', {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.UUID,
       },
-      username: {
+      user_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'User',
+          key: 'id',
+          onDelete: 'CASCADE',
+        },
         allowNull: false,
-        type: Sequelize.STRING,
-        unique: true
       },
-      password: {
+      amount: {
+        type: Sequelize.DECIMAL(10),
         allowNull: false,
-        type: Sequelize.STRING,
       },
-      tokens: {
-        type: Sequelize.ARRAY,
+      currency: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      status: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       created_at: {
         allowNull: false,
@@ -31,12 +39,12 @@ module.exports = {
         type: Sequelize.DATE
       }
     }).then((queryInterface, Sequelize) => {
-      queryInterface.addIndex('users', ['id'], {
+      queryInterface.addIndex('transactions', ['id'], {
         indicesType: 'UNIQUE',
       });
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('users');
+    await queryInterface.dropTable('transactions');
   }
 };

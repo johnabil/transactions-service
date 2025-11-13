@@ -1,23 +1,16 @@
-# Getting Started with [Fastify-CLI](https://www.npmjs.com/package/fastify-cli)
-This project was bootstrapped with Fastify-CLI.
+# Transactions Service
 
-## Available Scripts
+- This service is used to create, update, delete or get any transaction.
+- It's made to last through verifying the consistency of transactions and
+  audit logs created for each transaction. where we made sure every transaction
+  created has a corresponding audit log and if transaction is
+  deleted, rolled back or had any failures audit log is also rolled back.
 
-In the project directory, you can run:
+### Starting the service
 
-### `npm run dev`
+You can start the service using docker compose and it's preferred to
+use local db connection rather than docker db connection.
 
-To start the app in dev mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+**Note:** Make sure you have each service on different ports.
 
-### `npm start`
-
-For production mode
-
-### `npm run test`
-
-Run the test cases.
-
-## Learn More
-
-To learn Fastify, check out the [Fastify documentation](https://fastify.dev/docs/latest/).
+`docker compose up --build`

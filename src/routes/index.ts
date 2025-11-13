@@ -1,5 +1,6 @@
 import {FastifyInstance} from 'fastify'
 import {UsersRoute} from "./users.route";
+import {TransactionsRoute} from "./transactions.route";
 
 const routes = async function (fastify: FastifyInstance) {
     fastify.use(require('cors'));
@@ -10,6 +11,10 @@ const routes = async function (fastify: FastifyInstance) {
     });
 
     fastify.register(UsersRoute);
+    fastify.register(TransactionsRoute, {
+        prefix: '/transactions',
+        preHandler: fastify.authenticate
+    });
 }
 
 export default routes

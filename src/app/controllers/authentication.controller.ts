@@ -30,8 +30,9 @@ export class AuthenticationController {
             const hashedPassword = await bcrypt.hash(password, 10);
 
             // Create a new user
-            const user = await User.create({username, password: hashedPassword});
+            let user = await User.create({username, password: hashedPassword});
             const token = this.app.jwt.sign({id: user.id});
+            await user.update({tokens: [token]});
 
             return Response.status(201).send({
                 message: 'User registered successfully',
@@ -42,7 +43,7 @@ export class AuthenticationController {
                 },
             });
         } catch (err) {
-            return Response.status(500).send({message: 'Server error'});
+            return Response.status(500).send({message: 'Something went wrong'});
         }
     }
 
@@ -65,6 +66,7 @@ export class AuthenticationController {
 
             if (bcrypt.compareSync(password, user.password)) {
                 const token = this.app.jwt.sign({id: user.id});
+                await user.update({tokens: [...user.tokens, token]});
                 return Response.send({
                     message: 'Login successful',
                     user: {
@@ -85,18 +87,45 @@ export class AuthenticationController {
     };
 
     async me(Request: FastifyRequest, Response: FastifyReply) {
-        // const user_id = Request.user.id || undefined;
-        // if (user_id) {
-        //     const user = await User.findOne({where: {id: user_id}});
-        //     return Response.send({
-        //         user: user
-        //     });
-        // } else {
-        //     return Response.status(401).send({message: 'Unauthorized'});
-        // }
+        if (Request.headers.Authorization === undefined) {
+            return Response.status(401).send({
+                'message': 'Unauthorized'
+            });
+        }
+
+        const user_id = Request.user.id || undefined;
+        const token = Request.headers.Authorization.toString().replace('Bearer ', '');
+        if (user_id) {
+            const user = await User.findOne({where: {id: user_id}});
+            if (user) {
+                if (!user.tokens.includes(token)) {
+                    return Response.status(401).send({message: 'Invalid token'});
+                }
+
+                return Response.send({
+                    user: user
+                });
+            }
+        } else {
+            return Response.status(401).send({message: 'Unauthorized'});
+        }
     }
 
     async logout(Request: FastifyRequest, Response: FastifyReply) {
+        if (Request.headers.Authorization === undefined) {
+            return Response.status(401).send({
+                'message': 'Unauthorized'
+            });
+        }
+
+        const user_id = Request.user.id;
+        const token = Request.headers.Authorization.toString().replace('Bearer ', '');
+        await User.update({
+            tokens: this.app.sequelize.literal(`(SELECT COALESCE(jsonb_agg(value),'[]'::jsonb)
+            FROM jsonb_array_elements("tokens") AS value
+            WHERE value <> '"${token}"'::jsonb)`)
+        }, {where: {id: user_id}});
+
         return Response.send({message: 'Logout successful'});
     }
 }

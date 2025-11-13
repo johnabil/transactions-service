@@ -1,37 +1,31 @@
 import {Op, Sequelize} from "sequelize";
+import {User} from "../models/user.model";
 
-export class AuditLogRepository {
-    public auditLog;
+export class TransactionsRepository {
+    public transactions;
 
     constructor(sequelize: Sequelize) {
-        this.auditLog = sequelize.models.AuditLog;
+        this.transactions = sequelize.models.Transaction;
     }
 
-    async list(filters: object = {}, offset: number = 0, limit: number = 10) {
-        let query: Array<any> = [];
+    async findById(id: string) {
+        return await this.transactions.findOne({
+            where: {id},
+            include: [User]
+        });
+    }
 
-        console.log(filters);
-        if ("user_id" in filters && filters.user_id !== undefined) {
-            query.push({user_id: filters.user_id});
-        }
-        if ("transaction_id" in filters && filters.transaction_id !== undefined) {
-            query.push({transaction_id: filters.transaction_id});
-        }
-        return await this.auditLog.findAndCountAll({
-            where: (query.length > 0) ? {
-                [Op.or]: query
-            } : {},
+    async all(user_id: number = 0, transaction_id: string = '', amount: number = 0, currency: string = '', offset: number = 0, limit: number = 10) {
+        const filters = [{user_id}, {id: transaction_id}, {amount}, {currency}];
+
+        return await this.transactions.findAndCountAll({
+            where: {
+                [Op.or]: filters
+            },
+            include: [User],
             offset,
             limit,
             order: [['created_at', 'DESC']],
         });
-    }
-
-    async create(data: Omit<any, any>) {
-        return await this.auditLog.create(data);
-    }
-
-    async destroy(transaction_id: string) {
-        await this.auditLog.destroy({where: {transaction_id: transaction_id}});
     }
 }
